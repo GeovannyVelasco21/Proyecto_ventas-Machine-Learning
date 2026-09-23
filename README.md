@@ -2,7 +2,7 @@
 
 Modelo de *machine learning* que estima la **venta del próximo mes de cada asesor comercial** a partir de su historial reciente, su perfil y las características de la tienda. Proyecto de la Maestría en Ciencia de Datos desarrollado con la metodología **CRISP-DM**.
 
-🔗 **App en línea:** _(enlace disponible al publicar en Streamlit Community Cloud)_
+   🔗 **App en línea:** https://prediccion-ventas-asesor.streamlit.app
 
 ---
 
