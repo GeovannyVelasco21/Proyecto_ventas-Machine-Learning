@@ -1,0 +1,20 @@
+{
+  "numericas": [
+    "edad_asesor",
+    "total_dias_absentismo",
+    "metros_cuadrados_tienda",
+    "meses_antiguedad",
+    "log_venta_t_1",
+    "log_venta_t_2",
+    "log_venta_t_3"
+  ],
+  "binarias": [
+    "sin_hist_t_1"
+  ],
+  "categoricas": [
+    "nacionalidad_asesor",
+    "marca",
+    "mes_venta"
+  ],
+  "objetivo": "valor_venta_asesor_mes_t"
+}
