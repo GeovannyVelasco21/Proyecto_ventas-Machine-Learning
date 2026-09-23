@@ -1,5 +1,5 @@
 # app.py — Interfaz Streamlit: predicción de la venta del próximo mes por asesor
-# Autor: Geovanny Andrés Velasco Ospina — desarrollo completo
+# Curso Minería de Datos · Maestría en Ciencia de Datos · Proyecto académico CRISP-DM
 import json                                          # Leer archivos JSON
 from pathlib import Path                             # Rutas relativas a este archivo
 
@@ -140,6 +140,20 @@ with tab_modelos:
     st.dataframe(MODELOS_2026.style.format(formato), hide_index=True, width='stretch')
     st.success('**Random Forest** fue el mejor en ambas evaluaciones: reduce el error un 40 % frente a la '
                'línea base y explica el 65 % de la variación de la venta en 2026.')
+    with st.expander('¿Cómo leer estas medidas?'):
+        st.markdown(
+            '- **MAE (error absoluto medio):** cuánto se equivoca el modelo, en promedio, en pesos. '
+            'Es la medida con la que se eligió el modelo porque se entiende directamente y no la distorsionan '
+            'unos pocos casos extremos.\n'
+            '- **R² (coeficiente de determinación):** compara el modelo con la regla ingenua de "todos venden el '
+            'promedio". 1 = perfecto; 0 = igual que el promedio; negativo = peor que el promedio. Pone el MAE en '
+            'contexto: un R² de 0,65 indica que el modelo explica el 65 % de las diferencias de venta.\n'
+            '- **¿Por qué no otras?** En el análisis se calcularon también MSE, RMSE y MAPE. El MSE está en '
+            '"pesos al cuadrado" (no se interpreta), el RMSE exagera los errores grandes y el MAPE da valores '
+            'engañosos cuando la venta real es muy pequeña.\n'
+            '- **Asociaciones, no causas:** el modelo aprende qué variables se mueven junto con la venta, no por qué. '
+            'Sirve para estimar y planear, no para decidir sobre personas (por ejemplo, contratar por edad o '
+            'nacionalidad).')
     imagen = CARPETA / 'assets' / 'importancia_variables.png'
     if imagen.exists():
         st.image(str(imagen), caption='Qué pesa más en la predicción: la venta de los 3 meses anteriores '
@@ -147,27 +161,50 @@ with tab_modelos:
 
 # ====================== PESTAÑA 3: ¿CÓMO LLEGAMOS AQUÍ? ======================
 with tab_proceso:
-    st.subheader('Metodología CRISP-DM, en 6 pasos')
-    st.markdown(
-        '1. **Entender los datos** — 17.603 registros asesor-mes (abril 2024 – agosto 2026), 2.237 asesores y '
-        '151 tiendas. Se verificó que no hubiera vacíos, duplicados ni meses faltantes.\n'
-        '2. **Preparar** — variables nuevas: *sin historia* (distingue un asesor nuevo de uno que vendió poco), '
-        '*antigüedad* y la venta anterior en escala logarítmica (para que los pocos asesores de ventas muy altas '
-        'no dominen el modelo).\n'
-        '3. **Elegir las variables** — 4 métodos (correlación, índice de ganancia, árbol de decisión y regresión '
-        'logística) votaron; quedaron 11 de 18 variables.\n'
-        '4. **Evaluar sin hacer trampa** — se entrenó con 2024–2025 y se evaluó con 2026, respetando el orden '
-        'del tiempo: el modelo nunca vio el futuro al aprender.\n'
-        '5. **Comparar modelos** — Ridge, árbol y Random Forest, cuidando que no memorizaran los datos '
-        '(sobreajuste). Ganó Random Forest.\n'
-        '6. **Desplegar** — el modelo final se reentrenó con todos los datos y se publicó en esta app.')
+    st.subheader('Metodología CRISP-DM: qué hicimos y por qué')
+    PASOS = [
+        ('1. Entender los datos',
+         '17.603 registros asesor-mes (abril 2024 – agosto 2026), 2.237 asesores y 151 tiendas. Se verificó que no '
+         'hubiera vacíos, duplicados ni meses faltantes, y que las ventas de los meses anteriores coincidieran con '
+         'la historia real de cada asesor.',
+         'Un modelo solo es tan bueno como sus datos: primero se confirma que la base es íntegra y confiable.'),
+        ('2. Preparar los datos',
+         'Se crearon variables nuevas: *sin historia* (el asesor no trabajó el mes anterior), *antigüedad* y la '
+         'venta anterior en escala logarítmica. Las reglas de calidad (edades, ausencias) se validaron con la empresa.',
+         'Distinguir un asesor nuevo de uno que vendió poco evita errores grandes; la escala logarítmica impide que '
+         'los pocos asesores de ventas muy altas dominen el modelo.'),
+        ('3. Selección de factores',
+         'Primero se eliminaron las variables redundantes (que repiten información). Luego 4 métodos (correlación, '
+         'índice de ganancia, árbol de decisión y regresión logística) votaron por las variables más relacionadas '
+         'con la venta; se quedaron las que tuvieron al menos 2 votos de 4: 11 de 18 variables.',
+         'Usar varios métodos evita depender de uno solo, y quitar variables irrelevantes o repetidas hace el modelo '
+         'más simple y estable. La selección se hizo solo con 2024–2025, sin mirar 2026.'),
+        ('4. Evaluar sin hacer trampa',
+         'Se entrenó con 2024–2025 y se evaluó con 2026, respetando el orden del tiempo; los modelos se compararon '
+         'con validación cruzada por bloques de meses.',
+         'La venta de un mes aparece en el dato del mes siguiente: mezclar los meses al azar dejaría ver "las '
+         'respuestas del examen" y daría un error falsamente bajo.'),
+        ('5. Comparar modelos',
+         'Se compararon regresión Ridge, árbol de regresión y Random Forest contra la línea base, cuidando que no '
+         'memorizaran los datos (sobreajuste). El criterio de elección se definió antes de ver 2026.',
+         'Random Forest tuvo el menor error sin sobreajuste; en 2026 confirmó la elección con 40 % menos error que '
+         'la línea base.'),
+        ('6. Desplegar',
+         'El modelo final se reentrenó con todos los datos disponibles y se publicó en esta app.',
+         'Así aprende también de los meses más recientes y cualquier persona puede usarlo sin programar.'),
+    ]
+    for titulo, que, porque in PASOS:
+        with st.container(border=True):
+            st.markdown(f'**{titulo}**')
+            st.markdown(f'**Qué hicimos:** {que}')
+            st.markdown(f'**Por qué:** {porque}')
     st.subheader('Limitaciones')
     st.markdown(
         '- Predice **un mes adelante**; para meses posteriores se necesita la venta real del mes previo.\n'
         '- En promedio **subestima** a los asesores de venta alta.\n'
         '- Los errores relativos son grandes cuando la venta real es muy baja.\n'
-        '- Muestra asociaciones, no causas.')
+        '- La prueba 2026 no incluye diciembre, el mes de mayor venta.\n'
+        '- Muestra **asociaciones, no causas**.')
 
 st.divider()
-st.caption('Autor: Geovanny Andrés Velasco Ospina · Maestría en Ciencia de Datos · '
-           'Proyecto académico con metodología CRISP-DM')
+st.caption('Curso Minería de Datos · Maestría en Ciencia de Datos · Proyecto académico con metodología CRISP-DM')
