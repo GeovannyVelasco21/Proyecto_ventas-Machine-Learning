@@ -52,6 +52,11 @@ def pesos(valor):
     return '$ ' + f'{valor:,.0f}'.replace(',', '.')
 
 
+def pesos_md(valor):
+    """Igual que pesos(), pero para textos con formato: el $ se escapa para que Streamlit no lo lea como fórmula."""
+    return pesos(valor).replace('$', '\\$')
+
+
 st.set_page_config(page_title='Predicción de venta por asesor', page_icon='📈', layout='centered')
 modelo = cargar_modelo()
 variables = cargar_json('variables_seleccionadas.json')
@@ -113,12 +118,12 @@ with tab_pred:
         relativo = MAE_PRUEBA / max(prediccion, 1)   # Qué tanto representa el error promedio frente a esta predicción
         _, tipo_alerta, etiqueta = next(n for n in NIVELES if relativo <= n[0])
         getattr(st, tipo_alerta)(
-            f'**{etiqueta}.** El error promedio del modelo en 2026 fue de **{pesos(MAE_PRUEBA)}**, '
+            f'**{etiqueta}.** El error promedio del modelo en 2026 fue de **{pesos_md(MAE_PRUEBA)}**, '
             f'que equivale a ≈ **{relativo:.0%}** de esta estimación. Rango orientativo: '
-            f'**{pesos(max(prediccion - MAE_PRUEBA, 0))}** a **{pesos(prediccion + MAE_PRUEBA)}**.')
+            f'**{pesos_md(max(prediccion - MAE_PRUEBA, 0))}** a **{pesos_md(prediccion + MAE_PRUEBA)}**.')
         if mes == 'diciembre':
             st.warning(f'📅 Diciembre es el mes de mayor venta y la prueba 2026 no lo incluye. En la validación '
-                       f'cruzada (noviembre–diciembre 2025) el error promedio fue {pesos(MAE_NOV_DIC_CV)}: '
+                       f'cruzada (noviembre–diciembre 2025) el error promedio fue {pesos_md(MAE_NOV_DIC_CV)}: '
                        f'tome esta estimación con mayor cautela.')
         if v1 == 0:
             st.info('La venta del mes anterior es 0: el modelo trata al asesor como **sin historia** '
