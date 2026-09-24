@@ -30,6 +30,9 @@ MAE_NOV_DIC_CV = 31_304_241                          # Error en nov–dic 2025 (
 RANGOS = {'edad_asesor': (14, 57), 'total_dias_absentismo': (0, 31),
           'metros_cuadrados_tienda': (50.0, 329.0), 'meses_antiguedad': (0, 28)}
 
+# ---- Nombres de las marcas: el modelo usa códigos 1–4 (codificación de la preparación en Weka/KNIME) ----
+NOMBRES_MARCA = {'1': 'Marca A', '2': 'Marca B', '3': 'Marca C', '4': 'Marca D'}
+
 # ---- Niveles de confiabilidad según el error relativo esperado (criterio propio del proyecto) ----
 NIVELES = [(0.25, 'success', '🟢 Confiabilidad alta'),
            (0.50, 'warning', '🟡 Confiabilidad media'),
@@ -78,7 +81,8 @@ with tab_pred:
         st.subheader('1. Mes a predecir y tienda')
         c1, c2 = st.columns(2)
         mes = c1.selectbox('Mes a predecir', utils.MESES, index=utils.MESES.index('septiembre'))
-        marca = c2.selectbox('Marca', CATEGORIAS['marca'])
+        marca = c2.selectbox('Marca', CATEGORIAS['marca'],           # El modelo recibe el código ('1'…'4')
+                             format_func=lambda c: NOMBRES_MARCA.get(c, c))   # El usuario ve el nombre
         metros = st.number_input('Metros cuadrados de la tienda', min_value=RANGOS['metros_cuadrados_tienda'][0],
                                  max_value=RANGOS['metros_cuadrados_tienda'][1], value=140.0, step=1.0)
 
